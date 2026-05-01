@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Pokemon, PokemonListItem } from "../types";
+import { useState, useEffect, useCallback, useRef } from "react";
+
+import { Pokemon } from "../types";
 import {
   fetchPokemonList,
   fetchPokemon,
   fetchPokemonByType,
+  fetchAllPokemonNames,
   getPokemonIdFromUrl,
 } from "../utils/api";
 
@@ -22,6 +24,7 @@ interface UsePokemonListResult {
   setSelectedType: (t: string) => void;
   showFavoritesOnly: boolean;
   setShowFavoritesOnly: (v: boolean) => void;
+  namesLoading: boolean;
 }
 
 export const usePokemonList = (favoriteIds: Set<number>): UsePokemonListResult => {
@@ -33,6 +36,27 @@ export const usePokemonList = (favoriteIds: Set<number>): UsePokemonListResult =
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [namesLoading, setNamesLoading] = useState(true);
+  const allNamesRef = useRef<{ name: string; url: string }[]>([]);
+  useEffect(() => {
+    fetchAllPokemonNames()
+      .then((names) => {
+        allNamesRef.current = names;
+        setNamesLoading(false);
+      })
+      .catch(() => {
+        setNamesLoading(false);
+      });
+  }, []);
+
+  const getNameFilteredList = useCallback((query: string) => {
+    const q = query.toLowerCase().trim();
+    if (!q) return allNamesRef.current;
+    return allNamesRef.current.filter((item) =>
+      item.name.startsWith(q)
+    );
+  }, []);
+
   const handleSetSearchQuery = useCallback((q: string) => {
     setSearchQuery(q);
     setPage(0);
@@ -42,88 +66,89 @@ export const usePokemonList = (favoriteIds: Set<number>): UsePokemonListResult =
     setSelectedType(t);
     setPage(0);
   }, []);
-
   const handleSetShowFavoritesOnly = useCallback((v: boolean) => {
     setShowFavoritesOnly(v);
     setPage(0);
   }, []);
-
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
       setLoading(true);
       setError(null);
-      try {
-        let items: PokemonListItem[] = [];
-        let total = 0;
 
+      try {
         if (showFavoritesOnly) {
-         
-          const ids = Array.from(favoriteIds);
+          let ids = Array.from(favoriteIds);
+
+          if (searchQuery.trim()) {
+            const matchedNames = getNameFilteredList(searchQuery);
+            const matchedIds = new Set(
+              matchedNames.map((item) => getPokemonIdFromUrl(item.url))
+            );
+            ids = ids.filter((id) => matchedIds.has(id));
+          }
+
           const results = await Promise.all(ids.map((id) => fetchPokemon(id)));
+
           if (!cancelled) {
             let filtered = results;
-            if (searchQuery.trim()) {
-              filtered = filtered.filter((p) =>
-                p.name.includes(searchQuery.toLowerCase().trim())
-              );
-            }
+
             if (selectedType) {
               filtered = filtered.filter((p) =>
                 p.types.some((t) => t.type.name === selectedType)
               );
             }
+
             setPokemons(filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE));
             setTotalCount(filtered.length);
           }
           return;
         }
-
+        if (searchQuery.trim() && selectedType) {
+          const nameMatches = getNameFilteredList(searchQuery);
+          const pageSlice = nameMatches.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+          const details = await Promise.all(
+            pageSlice.map((item) => fetchPokemon(getPokemonIdFromUrl(item.url)))
+          );
+          const typeFiltered = details.filter((p) =>
+            p.types.some((t) => t.type.name === selectedType)
+          );
+          if (!cancelled) {
+            setPokemons(typeFiltered);
+            setTotalCount(nameMatches.length);
+          }
+          return;
+        }
+        if (searchQuery.trim()) {
+          const nameMatches = getNameFilteredList(searchQuery);
+          const total = nameMatches.length;
+          const pageSlice = nameMatches.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+          if (!cancelled) setTotalCount(total);
+          const details = await Promise.all(
+            pageSlice.map((item) => fetchPokemon(getPokemonIdFromUrl(item.url)))
+          );
+          if (!cancelled) setPokemons(details);
+          return;
+        }
         if (selectedType) {
           const typeData = await fetchPokemonByType(selectedType);
-          items = typeData.pokemon.map((p) => p.pokemon);
-          if (searchQuery.trim()) {
-            items = items.filter((p) =>
-              p.name.includes(searchQuery.toLowerCase().trim())
-            );
-          }
-          total = items.length;
-          items = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-        } else if (searchQuery.trim()) {
-          
-          try {
-            const result = await fetchPokemon(searchQuery.toLowerCase().trim());
-            if (!cancelled) {
-              setPokemons([result]);
-              setTotalCount(1);
-            }
-            return;
-          } catch {
-            // Not found
-            if (!cancelled) {
-              setPokemons([]);
-              setTotalCount(0);
-            }
-            return;
-          }
-        } else {
-          const listData = await fetchPokemonList(PAGE_SIZE, page * PAGE_SIZE);
-          items = listData.results;
-          total = listData.count;
+          const items = typeData.pokemon.map((p) => p.pokemon);
+          const total = items.length;
+          const pageSlice = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+          if (!cancelled) setTotalCount(total);
+          const details = await Promise.all(
+            pageSlice.map((item) => fetchPokemon(getPokemonIdFromUrl(item.url)))
+          );
+          if (!cancelled) setPokemons(details);
+          return;
         }
-
-        if (!cancelled) {
-          setTotalCount(total);
-        }
-
+        const listData = await fetchPokemonList(PAGE_SIZE, page * PAGE_SIZE);
+        if (!cancelled) setTotalCount(listData.count);
         const details = await Promise.all(
-          items.map((item) => fetchPokemon(getPokemonIdFromUrl(item.url)))
+          listData.results.map((item) => fetchPokemon(getPokemonIdFromUrl(item.url)))
         );
-
-        if (!cancelled) {
-          setPokemons(details);
-        }
+        if (!cancelled) setPokemons(details);
       } catch (err) {
         if (!cancelled) {
           setError("Failed to load Pokémon. Please try again.");
@@ -136,7 +161,8 @@ export const usePokemonList = (favoriteIds: Set<number>): UsePokemonListResult =
 
     load();
     return () => { cancelled = true; };
-  }, [page, searchQuery, selectedType, showFavoritesOnly, favoriteIds]);
+
+  }, [page, searchQuery, selectedType, showFavoritesOnly, favoriteIds, getNameFilteredList]);
 
   return {
     pokemons,
@@ -151,6 +177,7 @@ export const usePokemonList = (favoriteIds: Set<number>): UsePokemonListResult =
     setSelectedType: handleSetSelectedType,
     showFavoritesOnly,
     setShowFavoritesOnly: handleSetShowFavoritesOnly,
+    namesLoading,
   };
 };
 export const PAGE_SIZE_EXPORT = PAGE_SIZE;

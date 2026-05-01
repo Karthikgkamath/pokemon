@@ -29,6 +29,10 @@ const AppInner: React.FC = () => {
     setShowFavoritesOnly,
   } = usePokemonList(favorites);
 
+  const handleTypeChange = (type: string) => {
+    setSelectedType(type);
+  };
+
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -89,15 +93,22 @@ const AppInner: React.FC = () => {
             onChange={setSearchQuery}
             placeholder="Search by name..."
           />
-          <button
-            className={`fav-toggle ${showFavoritesOnly ? "active" : ""}`}
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-          >
-            {showFavoritesOnly ? "♥" : "♡"}{" "}
-            <span>{showFavoritesOnly ? "Favorites" : "All"}</span>
-          </button>
+          <div className="fav-controls">
+            <button
+              className={`fav-toggle ${showFavoritesOnly ? "active" : ""}`}
+              onClick={() => setShowFavoritesOnly(true)}
+            >
+              ♥ <span>Favorites</span>
+            </button>
+            <button
+              className={`fav-toggle all-btn ${!showFavoritesOnly ? "active" : ""}`}
+              onClick={() => setShowFavoritesOnly(false)}
+            >
+              ♡ <span>All</span>
+            </button>
+          </div>
         </div>
-        <TypeFilter selected={selectedType} onChange={setSelectedType} />
+        <TypeFilter selected={selectedType} onChange={handleTypeChange} />
       </div>
       <main className="main-content">
         {loading || modalLoading ? (

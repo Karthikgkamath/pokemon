@@ -233,6 +233,30 @@ body {
   color: #FF6B8A;
 }
 
+/* Two-button group for Favorites / All */
+.fav-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fav-toggle.all-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.fav-toggle.all-btn:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.fav-toggle.all-btn.active {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
 /* Main content */
 .main-content {
   position: relative;

@@ -1,33 +1,16 @@
-# Pokédex Lite
 
 A beautifully designed, full-featured Pokédex web application built with React and TypeScript.
 
-![Pokédex Lite](https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png)
 
-## 🚀 Live Demo
+## Live Demo
 
-> Deploy to Vercel: Click "New Project" → Import from GitHub → Deploy (zero config needed)
-
----
-
-## ✨ Features
-
-### Mandatory
-- **Data Fetching** — All Pokémon fetched from [PokéAPI](https://pokeapi.co/) with loading spinners and error handling
-- **Responsive Grid** — Works perfectly on mobile (2-col), tablet, and desktop (auto-fill)
-- **Search** — Live search by Pokémon name with instant results
-- **Type Filtering** — Filter by any of the 18 Pokémon types dynamically fetched from the API
-- **Pagination** — Navigate through all 1000+ Pokémon, 20 per page
-- **Favorites** — Heart any Pokémon; favorites persisted via `localStorage`
-- **Detail Modal** — Click any card to see HP, ATK, DEF, stats with animated bars, abilities, and moves. Toggle shiny form!
-
-### Bonus
-- **Animations** — Framer Motion powered: card entrance stagger, hover lift effects, modal spring, stat bar fills, tab transitions
-- **Shiny Toggle** — View shiny variants in the detail modal
+Netlify deployed project-https://astounding-starlight-d0c55d.netlify.app/
 
 ---
 
-## 🛠 Tech Stack
+
+
+## Tech Stack
 
 | Technology | Why |
 |---|---|
@@ -40,7 +23,7 @@ A beautifully designed, full-featured Pokédex web application built with React 
 
 ---
 
-## 📦 Installation & Running Locally
+## nstallation & Running Locally
 
 ### Prerequisites
 - Node.js ≥ 16
@@ -62,17 +45,11 @@ npm start
 
 The app will open at **http://localhost:3000**
 
-### Build for Production
 
-```bash
-npm run build
-```
-
-Output is in the `build/` folder — ready to deploy to Vercel, Netlify, or GitHub Pages.
 
 ---
 
-## 🗂 Project Structure
+## Project Structure
 
 ```
 src/
@@ -98,27 +75,14 @@ src/
 
 ---
 
-## 🎨 Design Decisions
+## Challenges & Solutions
 
-- **Dark theme** with type-reactive glows — each card's glow matches the Pokémon's primary type
-- **Bebas Neue + Space Mono** — bold display font paired with monospace for that tech/retro feel
-- **Radial gradients per type** — no two cards look the same
-- **Sticky header** with backdrop blur for easy navigation while scrolling
+- Favorites / All control UX: Initially the app used a single toggle that both switched between "All" and "Favorites" and also changed the label in place. I implemented the two-button group so each button explicitly selects the corresponding dataset (favorites vs all). This avoids accidental toggles and makes the behavior explicit.
 
----
+- Filtering while in Favorites: Another UX edge-case was that selecting `All Types` in the type filter while viewing favorites would accidentally switch the app back to the global "All" list. I fixed this by separating the type-selection behavior from which dataset is shown — changing types now only updates the selected type, and the `Favorites` / `All` buttons control which dataset is visible.
 
-## ⚡ Challenges & Solutions
-
-| Challenge | Solution |
-|---|---|
-| PokéAPI doesn't return images in list endpoint | Fetch individual Pokémon details in parallel with `Promise.all` |
-| Search returns no list — only direct lookup | Direct `GET /pokemon/:name` for name searches |
-| Type filtering returns full Pokémon list at once | Slice client-side for pagination after type filter |
-| Favorites need to persist across sessions | `localStorage` synced via `useEffect` in context |
-| Modal needs complete move list | Re-fetch individual Pokémon on modal open if moves array is empty |
+- Persisting favorites: To keep favorites between sessions, I used `localStorage` with a small wrapper in `FavoritesContext`. The favorites are stored as an array in localStorage and reloaded on startup, avoiding loss on refresh.
 
 ---
 
-## 📄 License
 
-MIT

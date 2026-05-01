@@ -1,0 +1,41 @@
+.type-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.type-filter-btn {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.type-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.type-filter-btn.all-btn {
+  border-color: rgba(255, 215, 0, 0.2);
+  color: rgba(255, 215, 0, 0.7);
+}
+
+.type-filter-btn.all-btn.active {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: gold;
+  color: gold;
+}
+
+.type-filter-btn.active {
+  font-weight: 700;
+}

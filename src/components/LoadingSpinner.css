@@ -1,0 +1,37 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 80px 20px;
+}
+
+.pokeball-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pokeball {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 24px rgba(255, 107, 53, 0.4),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+
+.loading-text {
+  font-family: "Space Mono", monospace;
+  font-size: 13px;
+  color: rgb(237, 230, 230);
+  letter-spacing: 0.05em;
+  
+}
+
